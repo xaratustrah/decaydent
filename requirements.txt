@@ -5,3 +5,7 @@ h5py
 numpy
 matplotlib
 pillow
+json
+nibabel
+loguru
+pathlib
