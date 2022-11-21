@@ -158,7 +158,7 @@ def main():
 
     logger.remove()
     logger.add(sys.stdout, level="INFO")
-    logger.add(outfilepath + 'pettern_gen.log', level='DEBUG')
+    logger.add(outfilepath + f'{parser.prog}.log', level='DEBUG')
 
     if args.hdf:
         pattern_images_all = np.zeros((YMAX, XMAX))
