@@ -198,22 +198,25 @@ def main():
                     f'decay_coords_as_list/{ii}', data=pattern_decay_coords_as_list_all[ii], compression="gzip")
 
     elif args.nnunet:
-        task_name = f'Task100_{outfilename}'
+        task_name = f'Task{outfilename}'
         base_path = f'{outfilepath}{task_name}'
-        images_path = f'{base_path}/raw_splitted/imagesTr'
-        labels_path = f'{base_path}/raw_splitted/labelsTr'
+        images_path = f'{base_path}/raw_splitted/images'
+        labels_path = f'{base_path}/raw_splitted/labels'
 
-        Path(images_path).mkdir(parents=True, exist_ok=True)
-        Path(labels_path).mkdir(parents=True, exist_ok=True)
-
+        Path(images_path+'Tr').mkdir(parents=True, exist_ok=True)
+        Path(labels_path+'Tr').mkdir(parents=True, exist_ok=True)
+        Path(images_path+'Ts').mkdir(parents=True, exist_ok=True)
+        Path(labels_path+'Ts').mkdir(parents=True, exist_ok=True)
+            
         with open(f'{base_path}/dataset.json', 'w') as f:
             json.dump({
                 'task': task_name,
                 'name': outfilename,
-                'dim': 3,
+                'target_class': None,
                 'test_labels': True,
                 'labels': {'0': 'Decay'},
                 'modalities': {'0': 'ESR'},
+                'dim': 3,
             }, f, indent=4)
 
         for i in range(args.nsim):
@@ -224,15 +227,20 @@ def main():
             # normalize to 1
             b = b/b.max()
             new_image = nib.Nifti1Image(b, affine=np.eye(4))
-            nib.save(new_image, f'{images_path}/case{i:05d}_00.nii.gz')
-
             c = np.expand_dims(spill.pattern_instances, axis=2)
             # normalize to 1
             c[np.nonzero(c)] = 1
             new_instance = nib.Nifti1Image(c, affine=np.eye(4))
-            nib.save(new_instance, f'{labels_path}/case{i:05d}.nii.gz')
 
-            with open(f'{labels_path}/case{i:05d}.json', 'w') as f:
+            if i < int(args.nsim * 3 / 4):
+                path_suffix = 'Tr'
+            else:
+                path_suffix = 'Ts'
+                            
+            nib.save(new_image, f'{images_path}{path_suffix}/case_{i}_0000.nii.gz')
+            nib.save(new_instance, f'{labels_path}{path_suffix}/case_{i}.nii.gz')
+
+            with open(f'{labels_path}{path_suffix}/case_{i}.json', 'w') as f:
                 json.dump({'instances': {'1': 0}}, f, indent=4)
 
     else:
