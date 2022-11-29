@@ -226,7 +226,7 @@ def main():
             }, f, indent=4)
 
         for i in range(args.nsim):
-            logger.info(f"Preparing case{i:05d}")
+            logger.info(f"Preparing case_{i}")
             spill = Spill()
             spill.create_pattern(bkgnd=True, without_empty_shots=args.without_empty_shots)
             b = np.expand_dims(spill.pattern_image, axis=2)
