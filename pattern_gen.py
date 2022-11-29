@@ -92,14 +92,19 @@ class Spill():
     def __init__(self, max_decays=5):
         self.max_decays = max_decays
 
-    def create_pattern(self, bkgnd=False):
+    def create_pattern(self, bkgnd=False, without_empty_shots=False):
         self.pattern_image = np.zeros((YMAX, XMAX))
         self.pattern_instances = np.zeros((YMAX, XMAX))
         self.pattern_bboxes_as_image = np.zeros((YMAX, XMAX))
         self.pattern_bboxes_as_list = []
         self.pattern_decay_coords_as_list = []
 
-        for i in range(np.random.randint(self.max_decays)):
+        n_decays = np.random.randint(self.max_decays)
+
+        if without_empty_shots:
+            n_decays = np.clip(n_decays, 1, self.max_decays)
+            
+        for i in range(n_decays):
             decay = Decay()
             try:
                 b, instance_only, decay_coords, bbox = decay.make_decay_pattern()
@@ -148,6 +153,7 @@ def main():
                         help='output directory.')
     parser.add_argument('--hdf', action='store_true')
     parser.add_argument('--nnunet', action='store_true')
+    parser.add_argument('--without-empty-shots', action='store_true')
 
     args = parser.parse_args()
     outfilename = args.outfilename[0]
@@ -168,9 +174,9 @@ def main():
         pattern_decay_coords_as_list_all = []
 
         for i in range(args.nsim):
-            logger.info(f"Preparing case{i:05d}")
+            logger.info(f"Preparing case_{i}")
             spill = Spill()
-            spill.create_pattern(bkgnd=True)
+            spill.create_pattern(bkgnd=True, without_empty_shots=args.without_empty_shots)
 
             # dstack is equal to stack -1 or 2 for three dim arrays
             pattern_images_all = np.dstack(
@@ -222,7 +228,7 @@ def main():
         for i in range(args.nsim):
             logger.info(f"Preparing case{i:05d}")
             spill = Spill()
-            spill.create_pattern(bkgnd=True)
+            spill.create_pattern(bkgnd=True, without_empty_shots=args.without_empty_shots)
             b = np.expand_dims(spill.pattern_image, axis=2)
             # normalize to 1
             b = b/b.max()
